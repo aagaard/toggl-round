@@ -26,6 +26,7 @@ from datetime import date, timedelta
 import pytz
 import requests
 from dateutil.parser import parse
+from dotenv import load_dotenv
 from loguru import logger
 
 
@@ -66,6 +67,13 @@ class TimeEntry:
         description=None,
         duration=None,
         tags=None,
+        workspace_id=None,
+        project_id=None,
+        task_id=None,
+        tag_ids=None,
+        server_deleted_at=None,
+        user_id=None,
+        permissions=None,
     ):
         self.description = description
         self.tags = tags
@@ -90,6 +98,11 @@ class TimeEntry:
         self.wid = wid
         self.id = id
         self.uid = uid
+        self.workspace_id = workspace_id
+        self.project_id = project_id
+        self.task_id = task_id
+        self.tags_id = tag_ids
+        self.user_id = user_id
 
     def __repr__(self):
         return "{0}".format(self.__dict__)
@@ -114,13 +127,16 @@ def get_headers():
     """
     api_key = os.getenv("TOGGL_API_KEY")
     if not api_key:
-        print(
+        logger.error(
             "'TOGGL_API_KEY' environment variable not set. Please set this variable to continue."
         )
         sys.exit(1)
 
     base64_token = base64.b64encode(f"{api_key}:api_token".encode()).decode()
-    return {"Authorization": f"Basic {base64_token}"}
+    return {
+        "Authorization": f"Basic {base64_token}",
+        "content-type": "application/json",
+    }
 
 
 def get_time_entries(start_date=None, end_date=None):
@@ -128,7 +144,7 @@ def get_time_entries(start_date=None, end_date=None):
     Retrieves time entries from Toggl API within a specified date range.
     """
     headers = get_headers()
-    url = "https://api.track.toggl.com/api/v8/time_entries"
+    url = "https://api.track.toggl.com/api/v9/me/time_entries"
     params = {}
     if start_date:
         params["start_date"] = start_date.isoformat()
@@ -207,9 +223,8 @@ def update_entries(entries):
     headers = get_headers()
 
     for entry in entries:
-        url = f"https://api.track.toggl.com/api/v8/time_entries/{entry.id}"
-        time_entry_data = {"time_entry": entry}
-        json_data = json.dumps(time_entry_data, cls=TimeEntryEncoder)
+        url = f"https://api.track.toggl.com/api/v9/workspaces/{entry.workspace_id}/time_entries/{entry.id}"
+        json_data = json.dumps(entry, cls=TimeEntryEncoder)
         response = requests.put(url, headers=headers, data=json_data)
 
         if response.status_code != 200:
@@ -223,38 +238,25 @@ def main():
     """
     parser = argparse.ArgumentParser(description="Process time entries from Toggl")
 
-    utc_now = datetime.datetime.now(pytz.utc)
-    yesterday = utc_now - timedelta(days=1)
-    start_date = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
-
     parser.add_argument(
-        "start_date",
-        type=lambda s: pytz.utc.localize(datetime.datetime.strptime(s, "%Y-%m-%d")),
+        "number_of_days_from_today",
+        type=int,
         nargs="?",
-        default=start_date,
-        help="Start date in YYYY-MM-DD format (optional)",
-    )
-    parser.add_argument(
-        "end_date",
-        type=lambda s: pytz.utc.localize(datetime.datetime.strptime(s, "%Y-%m-%d")),
-        nargs="?",
-        default=None,
-        help="End date in YYYY-MM-DD format (optional)",
+        default=1,
+        help="Number of days from today to process time entries",
     )
 
     # Parse command line arguments
     args = parser.parse_args()
 
-    # Use the parsed start_date and end_date - if end_date is not provided, it defaults to None
-    start_date = args.start_date
-    end_date = args.end_date
+    utc_now = datetime.datetime.now(pytz.utc)
+    date = utc_now - timedelta(days=args.number_of_days_from_today)
+    start_date = date.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    period = {"start_date": start_date, "end_date": end_date}
-    logger.info(f"Getting time entries from {start_date:%Y-%m-%d} to {end_date}")
+    period = {"start_date": start_date, "end_date": utc_now}
+    logger.info(f"Getting time entries from {start_date:%Y-%m-%d} to now")
     entries = get_time_entries(**period)
-    logger.info(
-        f"Fetched {len(entries)} Toggl entries from {yesterday:%Y-%m-%d %H:%M:%S}"
-    )
+    logger.info(f"Fetched {len(entries)} Toggl entries from {date:%Y-%m-%d %H:%M:%S}")
 
     # Update time entries
     update_entries(entries)
@@ -267,4 +269,5 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     main()
