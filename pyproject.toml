@@ -1,36 +1,48 @@
-[tool.poetry]
+[project]
 name = "toggl-round"
 version = "0.1.0"
-description = ""
-authors = ["Søren Siersted Mikkelsen <soren@aamikkelsen.dk>"]
+description = "Round Toggl time entries to the nearest quarter hour"
 readme = "README.md"
+authors = [
+  { name = "Søren Siersted Mikkelsen", email = "soren@aamikkelsen.dk" }
+]
+requires-python = ">=3.12,<4.0"
 
-[tool.poetry.dependencies]
-python = "^3.12"
-sniffer = "^0.4.1"
-rollbar = "^1.0.0"
-requests = "^2.31.0"
-pytz = "^2024.1"
-python-termstyle = "^0.1.10"
-python-dateutil = "^2.9.0.post0"
-pytest = "^8.0.2"
-py = "^1.11.0"
-nose = "^1.3.7"
-colorama = "^0.4.6"
-black = "^24.2.0"
-isort = "^5.13.2"
-pylsp-mypy = "^0.6.8"
-pylsp-rope = "^0.1.11"
-python-lsp-ruff = "^2.2.0"
-types-pytz = "^2024.1.0.20240203"
-types-requests = "^2.31.0.20240218"
-types-python-dateutil = "^2.8.19.20240106"
-loguru = "^0.7.2"
-ipython = "^8.22.2"
-ipdb = "^0.13.13"
-python-dotenv = "^1.0.1"
+# Runtime/application dependencies
+# Converted from Poetry caret constraints to explicit version ranges compatible with PEP 508.
+dependencies = [
+  "requests>=2.31.0,<3.0.0",
+  "pytz>=2024.1,<2025.0",
+  "python-dateutil>=2.9.0.post0,<3.0.0",
+  "rollbar>=1.0.0,<2.0.0",
+  "loguru>=0.7.2,<0.8.0",
+  "python-dotenv>=1.0.1,<2.0.0",
+  "colorama>=0.4.6,<0.5.0",
+  "python-termstyle>=0.1.10,<0.2.0"
+]
 
+[project.optional-dependencies]
+# Development, testing, linting, editor, and type stub dependencies
+dev = [
+  "pytest>=8.0.2,<9.0.0",
+  "nose>=1.3.7,<2.0.0",
+  "py>=1.11.0,<2.0.0",
+  "sniffer>=0.4.1,<0.5.0",
+  "black>=24.2.0,<25.0.0",
+  "isort>=5.13.2,<6.0.0",
+  "pylsp-mypy>=0.6.8,<0.7.0",
+  "pylsp-rope>=0.1.11,<0.2.0",
+  "python-lsp-ruff>=2.2.0,<3.0.0",
+  "types-pytz>=2024.1.0.20240203,<2024.2.0",
+  "types-requests>=2.31.0.20240218,<2.32.0",
+  "types-python-dateutil>=2.8.19.20240106,<2.9.0",
+  "ipython>=8.22.2,<9.0.0",
+  "ipdb>=0.13.13,<0.14.0"
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling>=1.21.1"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# Optional configuration for uv; kept minimal. Groups map to optional-dependencies.

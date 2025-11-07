@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Run poetry from the project root directory
-pushd $(dirname $0)/
-poetry run python time_entry_rounding.py
-popd
+# Execute the script using uv (PEP 582 style environment management)
+# Usage: ./run.sh [arg]
+
+pushd $(dirname "$0")/ >/dev/null || exit 1
+uv run python time_entry_rounding.py "$1"
+popd >/dev/null || exit 1
