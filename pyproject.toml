@@ -40,9 +40,18 @@ dev = [
   "ipdb>=0.13.13,<0.14.0"
 ]
 
+[project.scripts]
+# Provide a console entrypoint so you can run `uv run toggl-round 7`
+# or after installation just `toggl-round 7`.
+"toggl-round" = "time_entry_rounding:main"
+
 [build-system]
 requires = ["hatchling>=1.21.1"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Explicitly include the standalone module so Hatch can build the wheel.
+include = ["time_entry_rounding.py"]
 
 [tool.uv]
 # Optional configuration for uv; kept minimal. Groups map to optional-dependencies.
